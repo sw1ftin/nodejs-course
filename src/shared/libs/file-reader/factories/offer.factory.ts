@@ -1,7 +1,7 @@
-import { Offer, User } from '../../../types';
-import { CityName, Location } from '../../../types/city.enum';
-import { PropertyType } from '../../../types/property.enum';
-import { Amenity } from '../../../types/amenity.enum';
+import { Offer, User } from '../../../types/index.js';
+import { CityName, Location } from '../../../types/city.enum.js';
+import { PropertyType } from '../../../types/property.enum.js';
+import { Amenity } from '../../../types/amenity.enum.js';
 
 export class OfferFactory {
     static create(
@@ -36,12 +36,25 @@ export class OfferFactory {
                 return null;
             }
 
-            const publishDate = new Date(rawData.publishDate);
+            let publishDate: Date;
+            if (rawData.publishDate.includes('.')) {
+                const parts = rawData.publishDate.split('.');
+                if (parts.length === 3) {
+                    const [d, m, y] = parts;
+                    publishDate = new Date(Number(y), Number(m) - 1, Number(d));
+                } else {
+                    publishDate = new Date(rawData.publishDate);
+                }
+            } else {
+                publishDate = new Date(rawData.publishDate);
+            }
             if (isNaN(publishDate.getTime())) {
                 return null;
             }
 
-            const city = CityName[rawData.city as keyof typeof CityName];
+            const city = (Object.values(CityName) as string[]).includes(rawData.city)
+                ? (rawData.city as CityName)
+                : null;
             if (!city) {
                 return null;
             }
@@ -51,7 +64,7 @@ export class OfferFactory {
                 return null;
             }
 
-            const images = rawData.images.split(' ');
+            const images = rawData.images.split(' ').filter(Boolean);
             if (images.length !== 6 || images.some((img) => !img)) {
                 return null;
             }
@@ -64,7 +77,9 @@ export class OfferFactory {
                 return null;
             }
 
-            const type = PropertyType[rawData.type as keyof typeof PropertyType];
+            const type = (Object.values(PropertyType) as string[]).includes(rawData.type)
+                ? (rawData.type as PropertyType)
+                : null;
             if (!type) {
                 return null;
             }
@@ -87,13 +102,16 @@ export class OfferFactory {
             const amenities = rawData.amenities
                 .split(',')
                 .map((amenity) => amenity.trim())
-                .map((amenity) => Amenity[amenity as keyof typeof Amenity])
+                .map((amenity) => {
+                    const found = (Object.values(Amenity) as string[]).find(v => v === amenity);
+                    return found as Amenity | undefined;
+                })
                 .filter((amenity): amenity is Amenity => Boolean(amenity));
             if (amenities.length === 0) {
                 return null;
             }
 
-            const user = users.find((u) => u.email === rawData.userEmail);
+            const user = users.find((u) => u.email === rawData.userEmail || u.name === rawData.userEmail);
             if (!user) {
                 return null;
             }
@@ -103,7 +121,7 @@ export class OfferFactory {
                 return null;
             }
 
-            const [latitudeStr, longitudeStr] = rawData.location.split(' ');
+            const [latitudeStr, longitudeStr] = rawData.location.split(' ').filter(Boolean);
             const latitude = parseFloat(latitudeStr);
             const longitude = parseFloat(longitudeStr);
             if (

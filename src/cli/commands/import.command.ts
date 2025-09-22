@@ -1,6 +1,6 @@
 import { Command } from './command.interface.js';
-import { TSVFileReader } from '../../shared/libs/file-reader/index';
-import { Offer, User, UserType } from '../../shared/types/index.js';
+import { TSVFileReader } from '../../shared/libs/file-reader/index.js';
+import { User, UserType } from '../../shared/types/index.js';
 
 
 export class ImportCommand implements Command {
@@ -19,10 +19,7 @@ export class ImportCommand implements Command {
 
     try {
       fileReader.read();
-      fileReader.toArray(this.users).forEach((offer: Offer, index) => {
-        console.log(JSON.stringify(offer, null, 2));
-      });
-      console.log(fileReader.toArray(this.users).toString());
+      console.log(fileReader.toArray(this.users));
     } catch (err) {
 
       if (!(err instanceof Error)) {

@@ -1,2 +1,2 @@
-export * from './file-reader.interface';
-export * from './tsv-file-reader';
+export * from './file-reader.interface.js';
+export * from './tsv-file-reader.js';

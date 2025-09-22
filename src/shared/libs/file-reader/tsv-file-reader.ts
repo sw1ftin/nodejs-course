@@ -1,7 +1,7 @@
-import { FileReader } from "./file-reader.interface";
+import { FileReader } from "./file-reader.interface.js";
 import { readFileSync } from "fs";
-import { Offer, User } from "../../types";
-import { OfferFactory } from "./factories/offer.factory";
+import { Offer, User } from "../../types/index.js";
+import { OfferFactory } from "./factories/offer.factory.js";
 
 export class TSVFileReader implements FileReader {
     private content: string = '';
