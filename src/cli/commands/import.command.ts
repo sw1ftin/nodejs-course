@@ -1,6 +1,8 @@
 import { Command } from './command.interface.js';
 import { TSVFileReader } from '../../shared/libs/file-reader/index.js';
 import { User, UserType } from '../../shared/types/index.js';
+import chalk from 'chalk';
+import { inspect } from 'node:util';
 
 
 export class ImportCommand implements Command {
@@ -19,15 +21,17 @@ export class ImportCommand implements Command {
 
     try {
       fileReader.read();
-      console.log(fileReader.toArray(this.users));
+      const offers = fileReader.toArray(this.users);
+  console.info(chalk.cyan(`Imported ${offers.length} offers from ${filename}`));
+  console.log(inspect(offers, { colors: true, depth: null }));
     } catch (err) {
 
       if (!(err instanceof Error)) {
         throw err;
       }
 
-      console.error(`Can't import data from file: ${filename}`);
-      console.error(`Details: ${err.message}`);
+      console.error(chalk.red(`Can't import data from file: ${filename}`));
+      console.error(chalk.red(`Details: ${err.message}`));
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Command } from './commands/command.interface.js';
 import { CommandParser } from './command-parser.js';
+import chalk from 'chalk';
 
 type CommandCollection = Record<string, Command>;
 
@@ -46,9 +47,9 @@ export class CLIApplication {
         await Promise.resolve(command.execute(...(args ?? [])));
       } catch (err) {
         if (err instanceof Error) {
-          console.error(`Error executing ${commandName}: ${err.message}`);
+          console.error(chalk.red(`Error executing ${commandName}: ${err.message}`));
         } else {
-          console.error(`Error executing ${commandName}:`, err);
+          console.error(chalk.red(`Error executing ${commandName}:`), err);
         }
       }
     }
