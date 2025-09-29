@@ -3,35 +3,63 @@ import { CityName, Location } from '../../../types/city.enum.js';
 import { PropertyType } from '../../../types/property.enum.js';
 import { Amenity } from '../../../types/amenity.enum.js';
 
+const MIN_TITLE_LENGTH = 10;
+const MAX_TITLE_LENGTH = 100;
+const MIN_DESCRIPTION_LENGTH = 20;
+const MAX_DESCRIPTION_LENGTH = 1024;
+
+const IMAGES_COUNT = 6;
+
+const MIN_RATING = 1;
+const MAX_RATING = 5;
+
+const MIN_ROOMS = 1;
+const MAX_ROOMS = 8;
+
+const MIN_GUESTS = 1;
+const MAX_GUESTS = 10;
+
+const MIN_PRICE = 100;
+const MAX_PRICE = 100000;
+
+const MIN_COMMENTS_COUNT = 0;
+
+const LATITUDE_MIN = -90;
+const LATITUDE_MAX = 90;
+const LONGITUDE_MIN = -180;
+const LONGITUDE_MAX = 180;
+
+type RawOffer = {
+    title: string;
+    description: string;
+    publishDate: string;
+    city: string;
+    previewImage: string;
+    images: string;
+    isPremium: string;
+    isFavorite: string;
+    rating: string;
+    type: string;
+    rooms: string;
+    guests: string;
+    price: string;
+    amenities: string;
+    userEmail: string;
+    commentsCount: string;
+    location: string;
+};
+
 export class OfferFactory {
     static create(
-        rawData: {
-            title: string;
-            description: string;
-            publishDate: string;
-            city: string;
-            previewImage: string;
-            images: string;
-            isPremium: string;
-            isFavorite: string;
-            rating: string;
-            type: string;
-            rooms: string;
-            guests: string;
-            price: string;
-            amenities: string;
-            userEmail: string;
-            commentsCount: string;
-            location: string;
-        },
+        rawData: RawOffer,
         users: User[]
     ): Offer | null {
         try {
             const title = rawData.title;
             const description = rawData.description;
             if (
-                title.length < 10 || title.length > 100 ||
-                description.length < 20 || description.length > 1024
+                title.length < MIN_TITLE_LENGTH || title.length > MAX_TITLE_LENGTH ||
+                description.length < MIN_DESCRIPTION_LENGTH || description.length > MAX_DESCRIPTION_LENGTH
             ) {
                 return null;
             }
@@ -65,7 +93,7 @@ export class OfferFactory {
             }
 
             const images = rawData.images.split(' ').filter(Boolean);
-            if (images.length !== 6 || images.some((img) => !img)) {
+            if (images.length !== IMAGES_COUNT || images.some((img) => !img)) {
                 return null;
             }
 
@@ -73,7 +101,7 @@ export class OfferFactory {
             const isFavorite = rawData.isFavorite === 'True';
 
             const rating = parseFloat(rawData.rating.replace(',', '.'));
-            if (isNaN(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
+            if (isNaN(Number(rating)) || Number(rating) < MIN_RATING || Number(rating) > MAX_RATING) {
                 return null;
             }
 
@@ -85,17 +113,17 @@ export class OfferFactory {
             }
 
             const rooms = parseInt(rawData.rooms, 10);
-            if (isNaN(rooms) || rooms < 1 || rooms > 8) {
+            if (isNaN(rooms) || rooms < MIN_ROOMS || rooms > MAX_ROOMS) {
                 return null;
             }
             
             const guests = parseInt(rawData.guests, 10);
-            if (isNaN(guests) || guests < 1 || guests > 10) {
+            if (isNaN(guests) || guests < MIN_GUESTS || guests > MAX_GUESTS) {
                 return null;
             }
 
             const price = parseInt(rawData.price, 10);
-            if (isNaN(price) || price < 100 || price > 100000) {
+            if (isNaN(price) || price < MIN_PRICE || price > MAX_PRICE) {
                 return null;
             }
 
@@ -117,7 +145,7 @@ export class OfferFactory {
             }
 
             const commentsCount = parseInt(rawData.commentsCount, 10);
-            if (isNaN(commentsCount) || commentsCount < 0) {
+            if (isNaN(commentsCount) || commentsCount < MIN_COMMENTS_COUNT) {
                 return null;
             }
 
@@ -125,8 +153,8 @@ export class OfferFactory {
             const latitude = parseFloat(latitudeStr);
             const longitude = parseFloat(longitudeStr);
             if (
-                isNaN(latitude) || latitude < -90 || latitude > 90 ||
-                isNaN(longitude) || longitude < -180 || longitude > 180
+                isNaN(latitude) || latitude < LATITUDE_MIN || latitude > LATITUDE_MAX ||
+                isNaN(longitude) || longitude < LONGITUDE_MIN || longitude > LONGITUDE_MAX
             ) {
                 return null;
             }
