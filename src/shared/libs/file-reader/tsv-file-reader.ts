@@ -1,68 +1,35 @@
-import { FileReader } from "./file-reader.interface.js";
-import { readFileSync } from "fs";
-import { Offer, User } from "../../types/index.js";
-import { OfferFactory } from "./factories/offer.factory.js";
+import EventEmitter from 'node:events';
+import { createReadStream } from 'node:fs';
+import { FileReader } from './file-reader.interface.js';
+import { CHUNK_SIZE } from '../../constants.js';
 
-export class TSVFileReader implements FileReader {
-    private content: string = '';
+export class TSVFileReader extends EventEmitter implements FileReader {
+  constructor(private readonly filename: string) {
+    super();
+  }
 
-    constructor(private readonly filename: string) {}
+  public async read(): Promise<void> {
+    const readStream = createReadStream(this.filename, {
+      highWaterMark: CHUNK_SIZE,
+      encoding: 'utf-8',
+    });
 
-    public read(): void {
-        this.content = readFileSync(this.filename, 'utf-8');
+    let remainingData = '';
+    let nextLinePosition = -1;
+    let importedRowCount = 0;
+
+    for await (const chunk of readStream) {
+      remainingData += chunk.toString();
+
+      while ((nextLinePosition = remainingData.indexOf('\n')) >= 0) {
+        const completeRow = remainingData.slice(0, nextLinePosition + 1);
+        remainingData = remainingData.slice(++nextLinePosition);
+        importedRowCount++;
+
+        this.emit('line', completeRow);
+      }
     }
 
-    public toArray(users: User[]): Offer[] {
-        if (!this.content) {
-            throw new Error('File is not read yet. Call read() method before toArray().');
-        }
-
-        return this.content
-            .split('\n')
-            .filter((line) => line.trim().length > 0)
-            .map((line) => line.trim().split('\t'))
-            .filter((columns) => columns.length === 17)
-            .map((parts) => {
-                const [
-                    title,
-                    description,
-                    publishDate,
-                    city,
-                    previewImage,
-                    images,
-                    isPremium,
-                    isFavorite,
-                    rating,
-                    type,
-                    rooms,
-                    guests,
-                    price,
-                    amenities,
-                    userEmail,
-                    commentsCount,
-                    location,
-                ] = parts;
-                return {
-                    title,
-                    description,
-                    publishDate,
-                    city,
-                    previewImage,
-                    images,
-                    isPremium,
-                    isFavorite,
-                    rating,
-                    type,
-                    rooms,
-                    guests,
-                    price,
-                    amenities,
-                    userEmail,
-                    commentsCount,
-                    location,
-                };
-            })
-            .map((offerData) => OfferFactory.create(offerData, users))
-            .filter((offer): offer is Offer => offer !== null);
-    }
+    this.emit('end', importedRowCount);
+  }
 }

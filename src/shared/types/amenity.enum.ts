@@ -7,3 +7,7 @@ export enum Amenity {
   TOWELS = 'Towels',
   FRIDGE = 'Fridge'
 }
+
+export function isAmenity(value: unknown): Amenity | undefined {
+  return Object.values(Amenity).includes(value as Amenity) ? (value as Amenity) : undefined;
+}

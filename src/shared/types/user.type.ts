@@ -3,6 +3,10 @@ export enum UserType {
   PRO = 'pro'
 }
 
+export function isUserType(value: unknown): UserType | undefined {
+  return Object.values(UserType).includes(value as UserType) ? (value as UserType) : undefined;
+}
+
 export interface User {
   name: string;
   email: string;
