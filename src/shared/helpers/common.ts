@@ -62,3 +62,8 @@ export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) return error.message;
     return String(error);
 }
+
+export function createSHA256(line: string, salt: string): string {
+    const { createHmac } = require('node:crypto');
+    return createHmac('sha256', salt).update(line).digest('hex');
+}
