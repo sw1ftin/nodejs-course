@@ -24,7 +24,7 @@ export function createOffer(offerData: string): Offer {
     latitude,
     longitude
   ] = offerData.replace('\n','').split('\t');
-  let user: User = {
+  const user: User = {
     name,
     email,
     avatarUrl,
@@ -32,23 +32,27 @@ export function createOffer(offerData: string): Offer {
     type: isUserType(typeRaw) ?? UserType.REGULAR
   };
 
+  // Парсим commentsCount и рейтинг с проверками
+  const parsedCommentsCount = Number.parseInt(commentsCount, 10);
+  const parsedRating = parseFloat(rating);
+
   return {
     title,
     description,
-    publishDate: new Date(publishDate.split('.').reverse().join('-')),
+    publishDate: new Date(publishDate),
     city: isCityName(city) ?? CityName.AMSTERDAM,
     previewImage: previewImage,
-    images: images.split(' ') as [string, string, string, string, string, string],
+    images: images.split(',').map((img) => img.trim()) as [string, string, string, string, string, string],
     isPremium: isPremium.toLowerCase() === 'true',
     isFavorite: isFavorite.toLowerCase() === 'true',
-    rating: parseFloat(rating),
+    rating: Math.max(1, Math.min(5, parsedRating)), // Ограничиваем от 1 до 5
     type: isPropertyType(housingType) ?? PropertyType.APARTMENT,
     rooms: parseInt(rooms, 10),
     guests: parseInt(guests, 10),
     price: parseInt(price, 10),
-    amenities: amenities.split(',').map((c) => isAmenity(c.trim()) ?? Amenity.FRIDGE),
+    amenities: amenities.split(';').map((c) => isAmenity(c.trim()) ?? Amenity.FRIDGE),
     user,
-    commentsCount: Number.parseInt(commentsCount, 10),
+    commentsCount: isNaN(parsedCommentsCount) ? 0 : parsedCommentsCount,
     location: {
       latitude: Number.parseFloat(latitude),
       longitude: Number.parseFloat(longitude)

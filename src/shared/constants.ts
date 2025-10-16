@@ -1,4 +1,4 @@
-export const PATH_CONFIG = "./package.json";
+export const PATH_CONFIG = './package.json';
 
 export const MIN_TITLE_LENGTH = 10;
 export const MAX_TITLE_LENGTH = 100;
