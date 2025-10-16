@@ -7,6 +7,10 @@ export enum CityName {
   DUSSELDORF = 'Dusseldorf'
 }
 
+export function isCityName(value: unknown): CityName | undefined {
+  return Object.values(CityName).includes(value as CityName) ? (value as CityName) : undefined;
+}
+
 export interface Location {
   latitude: number;
   longitude: number;
