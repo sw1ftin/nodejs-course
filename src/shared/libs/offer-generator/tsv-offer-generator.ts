@@ -11,7 +11,7 @@ export class TsvOfferGenerator implements OfferGenerator {
     const title = getRandomArrayElement(this.mockData.titles);
     const description = getRandomArrayElement(this.mockData.descriptions);
 
-    const publishDate = dayjs().subtract(generateRandomNumber(0, 90), 'day').format('DD.MM.YYYY');
+    const publishDate = dayjs().subtract(generateRandomNumber(0, 90), 'day').toISOString();
 
     const city = getRandomEnumValue(CityName);
 
@@ -34,7 +34,7 @@ export class TsvOfferGenerator implements OfferGenerator {
     const price = generateRandomNumber(MIN_PRICE, MAX_PRICE);
 
     const amenitiesCount = generateRandomNumber(1, Object.keys(Amenity).length);
-    const amenities = getRandomEnumValues(Amenity, amenitiesCount).join(',');
+    const amenities = getRandomEnumValues(Amenity, amenitiesCount).join(';');
 
     const userName = getRandomArrayElement(this.mockData.users);
     const email = getRandomArrayElement(this.mockData.emails);
@@ -53,7 +53,7 @@ export class TsvOfferGenerator implements OfferGenerator {
       publishDate,
       city,
       previewImage,
-      images.join(' '),
+      images.join(','),
       isPremium,
       isFavorite,
       rating,
