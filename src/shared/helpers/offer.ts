@@ -24,7 +24,7 @@ export function createOffer(offerData: string): Offer {
     latitude,
     longitude
   ] = offerData.replace('\n','').split('\t');
-  let user: User = {
+  const user: User = {
     name,
     email,
     avatarUrl,
