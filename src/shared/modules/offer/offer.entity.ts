@@ -1,6 +1,9 @@
-import { prop, modelOptions, Ref, getModelForClass } from '@typegoose/typegoose';
+import { prop, modelOptions, Ref, getModelForClass, defaultClasses } from '@typegoose/typegoose';
 import { CityName, PropertyType, Amenity, Location } from '../../types/index.js';
 import { UserEntity } from '../user/user.entity.js';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export interface OfferEntity extends defaultClasses.Base {}
 
 @modelOptions({
   schemaOptions: {
@@ -8,7 +11,8 @@ import { UserEntity } from '../user/user.entity.js';
     timestamps: true
   }
 })
-export class OfferEntity {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export class OfferEntity extends defaultClasses.TimeStamps {
   @prop({ required: true, minlength: 10, maxlength: 100 })
   public title!: string;
 

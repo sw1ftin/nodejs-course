@@ -1,5 +1,8 @@
-import { prop, modelOptions, getModelForClass } from '@typegoose/typegoose';
+import { prop, modelOptions, getModelForClass, defaultClasses } from '@typegoose/typegoose';
 import { UserType } from '../../types/index.js';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export interface UserEntity extends defaultClasses.Base {}
 
 @modelOptions({
   schemaOptions: {
@@ -7,7 +10,8 @@ import { UserType } from '../../types/index.js';
     timestamps: true
   }
 })
-export class UserEntity {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export class UserEntity extends defaultClasses.TimeStamps {
   @prop({ required: true })
   public name!: string;
 
