@@ -1,4 +1,4 @@
-import { prop, modelOptions, Ref } from '@typegoose/typegoose';
+import { prop, modelOptions, Ref, getModelForClass } from '@typegoose/typegoose';
 import { CityName, PropertyType, Amenity, Location } from '../../types/index.js';
 import { UserEntity } from '../user/user.entity.js';
 
@@ -60,3 +60,5 @@ export class OfferEntity {
   @prop({ required: true, type: () => Object })
   public location!: Location;
 }
+
+export const OfferModel = getModelForClass(OfferEntity);

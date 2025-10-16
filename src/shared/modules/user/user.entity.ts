@@ -1,4 +1,4 @@
-import { prop, modelOptions } from '@typegoose/typegoose';
+import { prop, modelOptions, getModelForClass } from '@typegoose/typegoose';
 import { UserType } from '../../types/index.js';
 
 @modelOptions({
@@ -23,3 +23,5 @@ export class UserEntity {
   @prop({ required: true, type: () => String, enum: UserType })
   public type!: UserType;
 }
+
+export const UserModel = getModelForClass(UserEntity);
