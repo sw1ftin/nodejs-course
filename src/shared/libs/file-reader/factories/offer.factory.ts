@@ -2,32 +2,26 @@ import { Offer, User } from '../../../types/index.js';
 import { CityName, Location } from '../../../types/city.enum.js';
 import { PropertyType } from '../../../types/property.enum.js';
 import { Amenity } from '../../../types/amenity.enum.js';
-
-const MIN_TITLE_LENGTH = 10;
-const MAX_TITLE_LENGTH = 100;
-const MIN_DESCRIPTION_LENGTH = 20;
-const MAX_DESCRIPTION_LENGTH = 1024;
-
-const IMAGES_COUNT = 6;
-
-const MIN_RATING = 1;
-const MAX_RATING = 5;
-
-const MIN_ROOMS = 1;
-const MAX_ROOMS = 8;
-
-const MIN_GUESTS = 1;
-const MAX_GUESTS = 10;
-
-const MIN_PRICE = 100;
-const MAX_PRICE = 100000;
-
-const MIN_COMMENTS_COUNT = 0;
-
-const LATITUDE_MIN = -90;
-const LATITUDE_MAX = 90;
-const LONGITUDE_MIN = -180;
-const LONGITUDE_MAX = 180;
+import {
+    MIN_TITLE_LENGTH,
+    MAX_TITLE_LENGTH,
+    MIN_DESCRIPTION_LENGTH,
+    MAX_DESCRIPTION_LENGTH,
+    IMAGES_COUNT,
+    MIN_RATING,
+    MAX_RATING,
+    MIN_ROOMS,
+    MAX_ROOMS,
+    MIN_GUESTS,
+    MAX_GUESTS,
+    MIN_PRICE,
+    MAX_PRICE,
+    MIN_COMMENTS_COUNT,
+    LATITUDE_MIN,
+    LATITUDE_MAX,
+    LONGITUDE_MIN,
+    LONGITUDE_MAX
+} from '../../../constants.js';
 
 type RawOffer = {
     title: string;

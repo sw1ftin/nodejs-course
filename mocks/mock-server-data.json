@@ -1,0 +1,62 @@
+{
+    "api": {
+        "titles": [
+            "Номер в отеле",
+            "Номер в хостеле",
+            "Квартира",
+            "Дом",
+            "Пентхаус",
+            "Апартаменты"
+        ],
+        "descriptions": [
+            "Уютный номер с удобной кроватью и всеми необходимыми удобствами для комфортного проживания.",
+            "Современный номер в хостеле с общими удобствами и дружелюбной атмосферой.",
+            "Просторная квартира с полностью оборудованной кухней и гостиной зоной.",
+            "Очаровательный дом с садом и всеми удобствами для семейного отдыха.",
+            "Роскошный пентхаус с панорамным видом на город и эксклюзивными удобствами.",
+            "Стильные апартаменты с современным дизайном и удобным расположением."
+        ],
+        "users": [
+            "Artem",
+            "Dmitry",
+            "Nikolay",
+            "Olga",
+            "Svetlana",
+            "Vladimir",
+            "TRIVAGO"
+        ],
+        "emails": [
+            "artem@example.com",
+            "dmitry@example.com",
+            "nikolay@example.com",
+            "olga@example.com",
+            "svetlana@example.com",
+            "vladimir@example.com",
+            "trivago@example.com"
+        ],
+        "previewImages": [
+            "house.jpg",
+            "apartment.jpg",
+            "hostel.jpg",
+            "penthouse.jpg",
+            "hotel-room.jpg",
+            "room.jpg"
+        ],
+        "avatars": [
+            "user.jpg",
+            "photo.jpg",
+            "avatar.jpg",
+            "profile.jpg",
+            "person.jpg",
+            "face.jpg"
+        ],
+        "passwords": [
+            "password123",
+            "qwerty",
+            "letmein",
+            "123456",
+            "welcome",
+            "admin"
+        ]
+    }
+}
