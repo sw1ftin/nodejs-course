@@ -5,3 +5,4 @@ export * from './city.enum.js';
 export * from './amenity.enum.js';
 export * from './property.enum.js';
 export * from './mock-server-data.type.js';
+export * from './component.enum.js';
