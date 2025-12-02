@@ -1,0 +1,804 @@
+openapi: 3.1.0
+info:
+  title: API сервер для проекта «Шесть городов»
+  description: |-
+    * Список ресурсов и маршрутов сервера «Шесть городов»
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+
+tags:
+  - name: offers
+    description: Действия с объявлениями
+  - name: comments
+    description: Действия с комментариями
+  - name: users
+    description: Действия с пользователем
+
+paths:
+  /users/register:
+    post:
+      tags:
+        - users
+      summary: Регистрация пользователя
+      description: Регистрирует нового пользователя
+
+      requestBody:
+        description: Информация для создания нового пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createUser'
+        required: true
+
+      responses:
+        "201":
+          description: Пользователь зарегистрирован. Объект пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+        "409":
+          description: Пользователь с таким email уже существует
+
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Авторизация пользователя
+      description: Авторизует пользователя на основе логина и пароля
+
+      requestBody:
+        description: Логин и пароль авторизующегося пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginUser'
+        required: true
+
+      responses:
+        "200":
+          description: Пользователь авторизован. Токен пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authToken'
+
+        "401":
+          description: Ошибка авторизации. Неправильный логин или пароль
+
+    get:
+      tags:
+        - users
+      summary: Проверка состояния пользователя
+      description: Возвращает информацию по авторизованному пользователю
+      parameters:
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+            example: T2xpdmVyLmNvbm5lckBnbWFpbC5jb20=
+
+      responses:
+        "200":
+          description: Статус авторизации пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+        "401":
+          description: Пользователь не авторизован
+
+  /users/logout:
+    delete:
+      tags:
+        - users
+      summary: Завершение пользовательского сеанса
+      description: Завершает пользовательский сеанс (логаут)
+      parameters:
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "204":
+          description: Сеанс завершён
+
+        "401":
+          description: Пользователь не авторизован
+
+  /offers:
+    get:
+      tags:
+        - offers
+      summary: Получение списка предложений по аренде
+      description: Возвращает массив предложений. Каждое предложение описано в виде объекта
+      parameters:
+        - name: limit
+          in: query
+          description: Количество предложений для получения (по умолчанию 60)
+          required: false
+          schema:
+            type: integer
+            example: 10
+
+      responses:
+        "200":
+          description: Массив предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offerListItem'
+
+    post:
+      tags:
+        - offers
+      summary: Создание нового предложения
+      description: Создает новое предложение по аренде
+      parameters:
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        description: Информация для создания нового предложения
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createOffer'
+        required: true
+
+      responses:
+        "201":
+          description: Предложение создано. Объект предложения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+
+        "400":
+          description: Ошибка в данных для создания предложения
+
+        "401":
+          description: Пользователь не авторизован
+
+  /offers/{offerId}:
+    get:
+      tags:
+        - offers
+      summary: Получение детальной информации по предложению
+      description: Возвращает детальную информацию по одному предложению с идентификатором offerId
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+
+      responses:
+        "200":
+          description: Объект предложения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+
+        "404":
+          description: Предложение не найдено
+
+    patch:
+      tags:
+        - offers
+      summary: Редактирование предложения
+      description: Редактирует предложение с идентификатором offerId
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        description: Полный набор информации и идентификатор редактируемого предложения
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateOffer'
+        required: true
+
+      responses:
+        "200":
+          description: Предложение обновлено. Новый объект предложения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+
+        "400":
+          description: Ошибка в данных для обновления предложения
+
+        "401":
+          description: Пользователь не авторизован
+
+        "403":
+          description: Нет прав для редактирования
+
+        "404":
+          description: Предложение не найдено
+
+    delete:
+      tags:
+        - offers
+      summary: Удаление предложения
+      description: Удаляет предложение с идентификатором offerId
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "204":
+          description: Предложение удалено
+
+        "401":
+          description: Пользователь не авторизован
+
+        "403":
+          description: Нет прав для удаления
+
+        "404":
+          description: Предложение не найдено
+
+  /offers/premium/{city}:
+    get:
+      tags:
+        - offers
+      summary: Получение премиальных предложений для города
+      description: Возвращает не больше 3 предложений с флагом «Premium» для указанного города
+      parameters:
+        - name: city
+          in: path
+          description: Название города
+          required: true
+          schema:
+            type: string
+            enum: [Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf]
+            example: Amsterdam
+
+      responses:
+        "200":
+          description: Массив премиальных предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offerListItem'
+
+  /offers/favorites:
+    get:
+      tags:
+        - offers
+      summary: Получение списка избранных предложений
+      description: Возвращает все предложения, добавленные в избранное
+      parameters:
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Массив избранных предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offerListItem'
+
+        "401":
+          description: Пользователь не авторизован
+
+  /offers/{offerId}/favorite:
+    post:
+      tags:
+        - offers
+      summary: Добавление предложения в избранное
+      description: Добавляет предложение с идентификатором offerId в список избранного
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Объект предложения с установленным флагом isFavorite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+
+        "401":
+          description: Пользователь не авторизован
+
+        "404":
+          description: Предложение не найдено
+
+    delete:
+      tags:
+        - offers
+      summary: Удаление предложения из избранного
+      description: Удаляет предложение с идентификатором offerId из списка избранного
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Объект предложения с снятым флагом isFavorite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+
+        "401":
+          description: Пользователь не авторизован
+
+        "404":
+          description: Предложение не найдено
+
+  /comments/{offerId}:
+    get:
+      tags:
+        - comments
+      summary: Получение списка комментариев для предложения
+      description: Возвращает список комментариев для предложения с идентификатором offerId
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+
+      responses:
+        "200":
+          description: Массив комментариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/comment'
+
+        "404":
+          description: Предложение не найдено
+
+    post:
+      tags:
+        - comments
+      summary: Добавление комментария к предложению
+      description: Добавляет новый комментарий к предложению с идентификатором offerId
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор предложения
+          required: true
+          schema:
+            type: string
+            example: 6329c3d6a04ab1061c6425ea
+        - name: X-Token
+          in: header
+          description: Авторизационный токен пользователя
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        description: Объект с новым комментарием
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createComment'
+        required: true
+
+      responses:
+        "201":
+          description: Комментарий добавлен. Объект комментария
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/comment'
+
+        "400":
+          description: Ошибка в данных для создания комментария
+
+        "401":
+          description: Пользователь не авторизован
+
+        "404":
+          description: Предложение не найдено
+
+components:
+  schemas:
+    createUser:
+      type: object
+      properties:
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+        name:
+          type: string
+          example: Keks
+        type:
+          type: string
+          enum: [обычный, pro]
+          example: pro
+        password:
+          type: string
+          example: 123456
+        avatarUrl:
+          type: string
+          example: avatar.jpg
+
+    loginUser:
+      type: object
+      properties:
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+        password:
+          type: string
+          example: 123456
+
+    user:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+        name:
+          type: string
+          example: Keks
+        email:
+          type: string
+          example: keks@htmlacademy.ru
+        avatarUrl:
+          type: string
+          example: avatar.jpg
+        type:
+          type: string
+          enum: [обычный, pro]
+          example: pro
+
+    authToken:
+      type: object
+      properties:
+        token:
+          type: string
+          example: T2xpdmVyLmNvbm5lckBnbWFpbC5jb20=
+
+    createOffer:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: Beautiful apartment in the city center
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: A very nice apartment with a beautiful view
+        city:
+          type: string
+          enum: [Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf]
+          example: Amsterdam
+        previewImage:
+          type: string
+          example: preview.jpg
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+          example: [room1.jpg, room2.jpg, room3.jpg, room4.jpg, room5.jpg, room6.jpg]
+        isPremium:
+          type: boolean
+          example: true
+        type:
+          type: string
+          enum: [apartment, house, room, hotel]
+          example: apartment
+        rooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 3
+        guests:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 4
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 5000
+        amenities:
+          type: array
+          items:
+            type: string
+            enum: [Breakfast, Air conditioning, Laptop friendly workspace, Baby seat, Washer, Towels, Fridge]
+          example: [Breakfast, Air conditioning, Laptop friendly workspace]
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              example: 52.370216
+            longitude:
+              type: number
+              example: 4.895168
+
+    updateOffer:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: Updated apartment title
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: Updated description
+        city:
+          type: string
+          enum: [Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf]
+          example: Paris
+        previewImage:
+          type: string
+          example: new-preview.jpg
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+        isPremium:
+          type: boolean
+          example: false
+        type:
+          type: string
+          enum: [apartment, house, room, hotel]
+          example: house
+        rooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 2
+        guests:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 3
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 3500
+        amenities:
+          type: array
+          items:
+            type: string
+            enum: [Breakfast, Air conditioning, Laptop friendly workspace, Baby seat, Washer, Towels, Fridge]
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+
+    offer:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+        title:
+          type: string
+          example: Beautiful apartment in the city center
+        description:
+          type: string
+          example: A very nice apartment with a beautiful view
+        publishDate:
+          type: string
+          format: date-time
+          example: 2023-10-16T12:00:00Z
+        city:
+          type: string
+          example: Amsterdam
+        previewImage:
+          type: string
+          example: preview.jpg
+        images:
+          type: array
+          items:
+            type: string
+          example: [room1.jpg, room2.jpg, room3.jpg, room4.jpg, room5.jpg, room6.jpg]
+        isPremium:
+          type: boolean
+          example: true
+        isFavorite:
+          type: boolean
+          example: false
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4.5
+        type:
+          type: string
+          example: apartment
+        rooms:
+          type: integer
+          example: 3
+        guests:
+          type: integer
+          example: 4
+        price:
+          type: integer
+          example: 5000
+        amenities:
+          type: array
+          items:
+            type: string
+          example: [Breakfast, Air conditioning, Laptop friendly workspace]
+        user:
+          $ref: '#/components/schemas/user'
+        commentsCount:
+          type: integer
+          example: 10
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              example: 52.370216
+            longitude:
+              type: number
+              example: 4.895168
+
+    offerListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+        title:
+          type: string
+          example: Beautiful apartment in the city center
+        publishDate:
+          type: string
+          format: date-time
+          example: 2023-10-16T12:00:00Z
+        city:
+          type: string
+          example: Amsterdam
+        previewImage:
+          type: string
+          example: preview.jpg
+        isPremium:
+          type: boolean
+          example: true
+        isFavorite:
+          type: boolean
+          example: false
+        rating:
+          type: number
+          example: 4.5
+        type:
+          type: string
+          example: apartment
+        price:
+          type: integer
+          example: 5000
+        commentsCount:
+          type: integer
+          example: 10
+
+    createComment:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+          example: Great place to stay!
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+
+    comment:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+        text:
+          type: string
+          example: Great place to stay!
+        publishDate:
+          type: string
+          format: date-time
+          example: 2023-10-16T12:00:00Z
+        rating:
+          type: integer
+          example: 5
+        user:
+          $ref: '#/components/schemas/user'
