@@ -19,7 +19,6 @@ export class ImportCommand implements Command {
 
   constructor() {
     this.onImportedLine = this.onImportedLine.bind(this);
-    this.onCompleteImport = this.onCompleteImport.bind(this);
 
     this.logger = new ConsoleLogger();
     this.offerService = new DefaultOfferService(this.logger, OfferModel);
@@ -35,11 +34,6 @@ export class ImportCommand implements Command {
     const offer = createOffer(line);
     await this.saveOffer(offer);
     resolve();
-  }
-
-  private onCompleteImport(count: number) {
-    console.info(`${count} rows imported.`);
-    this.databaseClient.disconnect();
   }
 
   private async saveOffer(offer: Offer) {
@@ -82,13 +76,15 @@ export class ImportCommand implements Command {
     const fileReader = new TSVFileReader(filename.trim());
 
     fileReader.on('line', this.onImportedLine);
-    fileReader.on('end', this.onCompleteImport);
 
     try {
       await fileReader.read();
+      await this.databaseClient.disconnect();
+      console.info('Import completed successfully.');
     } catch (error) {
       console.error(`Can't import data from file: ${filename}`);
       console.error(getErrorMessage(error));
+      await this.databaseClient.disconnect();
     }
   }
 }

@@ -26,6 +26,9 @@ export class UserEntity extends defaultClasses.TimeStamps {
 
   @prop({ required: true, type: () => String, enum: UserType })
   public type!: UserType;
+
+  @prop({ default: [], type: () => [String] })
+  public favorites!: string[];
 }
 
 export const UserModel = getModelForClass(UserEntity);
