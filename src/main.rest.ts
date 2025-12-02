@@ -6,7 +6,7 @@ import { createUserContainer } from './shared/modules/user/index.js';
 import { createOfferContainer } from './shared/modules/offer/index.js';
 import { createCommentContainer } from './shared/modules/comment/index.js';
 import { Component } from './shared/types/index.js';
-import { Application } from './rest/rest.application.js';
+import { RestApplication } from './rest/rest.application.js';
 
 async function bootstrap() {
   const appContainer = Container.merge(
@@ -16,7 +16,7 @@ async function bootstrap() {
     createCommentContainer()
   );
 
-  const application = appContainer.get<Application>(Component.Application);
+  const application = appContainer.get<RestApplication>(Component.RestApplication);
   await application.init();
 }
 
