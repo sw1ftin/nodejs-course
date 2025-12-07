@@ -9,7 +9,7 @@ import {
   UserType,
   CityName,
   Amenity,
-} from "../types/index.js";
+} from '../types/index.js';
 
 export function createOffer(offerData: string): Offer {
   const [
@@ -35,7 +35,7 @@ export function createOffer(offerData: string): Offer {
     commentsCount,
     latitude,
     longitude,
-  ] = offerData.replace("\n", "").split("\t");
+  ] = offerData.replace('\n', '').split('\t');
   const user: User = {
     name,
     email,
@@ -53,7 +53,7 @@ export function createOffer(offerData: string): Offer {
     publishDate: new Date(publishDate),
     city: isCityName(city) ?? CityName.AMSTERDAM,
     previewImage: previewImage,
-    images: images.split(",").map((img) => img.trim()) as [
+    images: images.split(',').map((img) => img.trim()) as [
       string,
       string,
       string,
@@ -61,15 +61,15 @@ export function createOffer(offerData: string): Offer {
       string,
       string,
     ],
-    isPremium: isPremium.toLowerCase() === "true",
-    isFavorite: isFavorite.toLowerCase() === "true",
+    isPremium: isPremium.toLowerCase() === 'true',
+    isFavorite: isFavorite.toLowerCase() === 'true',
     rating: Math.max(1, Math.min(5, parsedRating)),
     type: isPropertyType(housingType) ?? PropertyType.APARTMENT,
     rooms: parseInt(rooms, 10),
     guests: parseInt(guests, 10),
     price: parseInt(price, 10),
     amenities: amenities
-      .split(";")
+      .split(';')
       .map((c) => isAmenity(c.trim()) ?? Amenity.FRIDGE),
     user,
     commentsCount: isNaN(parsedCommentsCount) ? 0 : parsedCommentsCount,

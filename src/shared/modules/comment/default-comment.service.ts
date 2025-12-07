@@ -1,12 +1,12 @@
-import { inject, injectable } from "inversify";
-import { types } from "@typegoose/typegoose";
-import { CommentEntity } from "./comment.entity.js";
-import { CreateCommentDto } from "./dto/create-comment.dto.js";
-import { CommentService } from "./comment-service.interface.js";
-import { OfferService } from "../offer/offer-service.interface.js";
-import { Component } from "../../types/index.js";
-import { Logger } from "../../libs/logger/index.js";
-import { DEFAULT_COMMENT_COUNT } from "./comment.constant.js";
+import { inject, injectable } from 'inversify';
+import { types } from '@typegoose/typegoose';
+import { CommentEntity } from './comment.entity.js';
+import { CreateCommentDto } from './dto/create-comment.dto.js';
+import { CommentService } from './comment-service.interface.js';
+import { OfferService } from '../offer/offer-service.interface.js';
+import { Component } from '../../types/index.js';
+import { Logger } from '../../libs/logger/index.js';
+import { DEFAULT_COMMENT_COUNT } from './comment.constant.js';
 
 @injectable()
 export class DefaultCommentService implements CommentService {
@@ -30,7 +30,7 @@ export class DefaultCommentService implements CommentService {
 
     await this.calculateAndUpdateRating(dto.offerId);
 
-    return comment.populate("author");
+    return comment.populate('author');
   }
 
   public async findByOfferId(
@@ -41,7 +41,7 @@ export class DefaultCommentService implements CommentService {
       .find({ offer: offerId })
       .limit(limit)
       .sort({ publishDate: -1 })
-      .populate("author")
+      .populate('author')
       .exec();
   }
 
@@ -60,7 +60,7 @@ export class DefaultCommentService implements CommentService {
         {
           $group: {
             _id: null,
-            avgRating: { $avg: "$rating" },
+            avgRating: { $avg: '$rating' },
           },
         },
       ])
