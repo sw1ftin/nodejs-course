@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify';
 import express, { Express } from 'express';
+import cors from 'cors';
 import { Logger } from '../shared/libs/logger/index.js';
 import { Config } from '../shared/libs/config/index.js';
 import { RestSchema } from '../shared/libs/config/rest.schema.js';
@@ -16,11 +17,16 @@ export class RestApplication {
   constructor(
     @inject(Component.Logger) private readonly logger: Logger,
     @inject(Component.Config) private readonly config: Config<RestSchema>,
-    @inject(Component.DatabaseClient) private readonly databaseClient: DatabaseClient,
-    @inject(Component.ExceptionFilter) private readonly appExceptionFilter: ExceptionFilter,
-    @inject(Component.UserController) private readonly userController: Controller,
-    @inject(Component.OfferController) private readonly offerController: Controller,
-    @inject(Component.CommentController) private readonly commentController: Controller,
+    @inject(Component.DatabaseClient)
+    private readonly databaseClient: DatabaseClient,
+    @inject(Component.ExceptionFilter)
+    private readonly appExceptionFilter: ExceptionFilter,
+    @inject(Component.UserController)
+    private readonly userController: Controller,
+    @inject(Component.OfferController)
+    private readonly offerController: Controller,
+    @inject(Component.CommentController)
+    private readonly commentController: Controller,
   ) {
     this.server = express();
   }
@@ -43,6 +49,7 @@ export class RestApplication {
   }
 
   private async _initMiddleware() {
+    this.server.use(cors());
     this.server.use(express.json());
 
     const uploadDirectory = this.config.get('UPLOAD_DIRECTORY');
@@ -60,7 +67,9 @@ export class RestApplication {
   }
 
   private async _initExceptionFilters() {
-    this.server.use(this.appExceptionFilter.catch.bind(this.appExceptionFilter));
+    this.server.use(
+      this.appExceptionFilter.catch.bind(this.appExceptionFilter),
+    );
   }
 
   public async init() {
@@ -84,6 +93,8 @@ export class RestApplication {
 
     this.logger.info('Try to init server…');
     await this._initServer();
-    this.logger.info(`🚀 Server started on http://localhost:${this.config.get('PORT')}`);
+    this.logger.info(
+      `🚀 Server started on http://localhost:${this.config.get('PORT')}`,
+    );
   }
 }
