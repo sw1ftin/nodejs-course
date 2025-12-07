@@ -7,6 +7,7 @@ import { Component } from '../shared/types/index.js';
 import { DatabaseClient } from '../shared/libs/database-client/index.js';
 import { getMongoURI } from '../shared/helpers/index.js';
 import { Controller, ExceptionFilter } from '../shared/libs/rest/index.js';
+import { existsSync, mkdirSync } from 'node:fs';
 
 @injectable()
 export class RestApplication {
@@ -43,6 +44,13 @@ export class RestApplication {
 
   private async _initMiddleware() {
     this.server.use(express.json());
+
+    const uploadDirectory = this.config.get('UPLOAD_DIRECTORY');
+    if (!existsSync(uploadDirectory)) {
+      mkdirSync(uploadDirectory, { recursive: true });
+    }
+
+    this.server.use('/upload', express.static(uploadDirectory));
   }
 
   private async _initControllers() {

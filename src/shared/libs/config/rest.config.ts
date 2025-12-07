@@ -58,6 +58,12 @@ export class RestConfig implements Config<RestSchema> {
         format: String,
         env: 'DB_NAME',
         default: 'six-cities'
+      },
+      UPLOAD_DIRECTORY: {
+        doc: 'Directory for uploaded files',
+        format: String,
+        env: 'UPLOAD_DIRECTORY',
+        default: './upload'
       }
     });
 

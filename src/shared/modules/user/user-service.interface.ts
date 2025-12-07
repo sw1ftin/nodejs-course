@@ -1,8 +1,9 @@
 import { UserEntity } from './user.entity.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { DocumentExists } from '../../types/index.js';
 
-export interface UserService {
+export interface UserService extends DocumentExists {
   create(dto: CreateUserDto, salt: string): Promise<UserEntity>;
   findByEmail(email: string): Promise<UserEntity | null>;
   findOrCreate(dto: CreateUserDto, salt: string): Promise<UserEntity>;
