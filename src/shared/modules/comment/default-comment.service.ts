@@ -12,8 +12,9 @@ import { DEFAULT_COMMENT_COUNT } from './comment.constant.js';
 export class DefaultCommentService implements CommentService {
   constructor(
     @inject(Component.Logger) private readonly logger: Logger,
-    @inject(Component.CommentModel) private readonly commentModel: types.ModelType<CommentEntity>,
-    @inject(Component.OfferService) private readonly offerService: OfferService
+    @inject(Component.CommentModel)
+    private readonly commentModel: types.ModelType<CommentEntity>,
+    @inject(Component.OfferService) private readonly offerService: OfferService,
   ) {}
 
   public async create(dto: CreateCommentDto): Promise<CommentEntity> {
@@ -21,20 +22,21 @@ export class DefaultCommentService implements CommentService {
       ...dto,
       author: dto.authorId,
       offer: dto.offerId,
-      publishDate: new Date()
+      publishDate: new Date(),
     });
     this.logger.info(`New comment created for offer: ${dto.offerId}`);
 
-    // Увеличиваем счётчик комментариев
     await this.offerService.incCommentCount(dto.offerId);
 
-    // Пересчитываем средний рейтинг
     await this.calculateAndUpdateRating(dto.offerId);
 
     return comment.populate('author');
   }
 
-  public async findByOfferId(offerId: string, limit: number = DEFAULT_COMMENT_COUNT): Promise<CommentEntity[]> {
+  public async findByOfferId(
+    offerId: string,
+    limit: number = DEFAULT_COMMENT_COUNT,
+  ): Promise<CommentEntity[]> {
     return this.commentModel
       .find({ offer: offerId })
       .limit(limit)
@@ -44,23 +46,28 @@ export class DefaultCommentService implements CommentService {
   }
 
   public async deleteByOfferId(offerId: string): Promise<number> {
-    const result = await this.commentModel.deleteMany({ offer: offerId }).exec();
+    const result = await this.commentModel
+      .deleteMany({ offer: offerId })
+      .exec();
 
     return result.deletedCount;
   }
 
   private async calculateAndUpdateRating(offerId: string): Promise<void> {
-    const result = await this.commentModel.aggregate([
-      { $match: { offer: { $eq: offerId } } },
-      {
-        $group: {
-          _id: null,
-          avgRating: { $avg: '$rating' }
-        }
-      }
-    ]).exec();
+    const result = await this.commentModel
+      .aggregate([
+        { $match: { offer: { $eq: offerId } } },
+        {
+          $group: {
+            _id: null,
+            avgRating: { $avg: '$rating' },
+          },
+        },
+      ])
+      .exec();
 
-    const averageRating = result.length > 0 ? Math.round(result[0].avgRating * 10) / 10 : 0;
+    const averageRating =
+      result.length > 0 ? Math.round(result[0].avgRating * 10) / 10 : 0;
     await this.offerService.updateRating(offerId, averageRating);
   }
 }

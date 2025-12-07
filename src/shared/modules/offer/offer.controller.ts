@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { BaseController, HttpError, HttpMethod } from '../../libs/rest/index.js';
+import { BaseController, HttpError, HttpMethod, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from '../../libs/rest/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
 import { OfferService } from './offer-service.interface.js';
@@ -17,11 +17,35 @@ export class OfferController extends BaseController {
     super(logger);
     this.logger.info('Register routes for OfferController…');
 
+    const validateOfferIdMiddleware = new ValidateObjectIdMiddleware('offerId');
+    const validateCreateOfferDtoMiddleware = new ValidateDtoMiddleware(CreateOfferDto);
+    const validateUpdateOfferDtoMiddleware = new ValidateDtoMiddleware(UpdateOfferDto);
+
     this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index as any });
-    this.addRoute({ path: '/', method: HttpMethod.Post, handler: this.create as any });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Get, handler: this.show as any });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Patch, handler: this.update as any });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Delete, handler: this.delete as any });
+    this.addRoute({
+      path: '/',
+      method: HttpMethod.Post,
+      handler: this.create as any,
+      middlewares: [validateCreateOfferDtoMiddleware]
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Get,
+      handler: this.show as any,
+      middlewares: [validateOfferIdMiddleware]
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Patch,
+      handler: this.update as any,
+      middlewares: [validateOfferIdMiddleware, validateUpdateOfferDtoMiddleware]
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.delete as any,
+      middlewares: [validateOfferIdMiddleware]
+    });
     this.addRoute({ path: '/premium/:city', method: HttpMethod.Get, handler: this.getPremiumByCity as any });
   }
 
