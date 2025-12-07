@@ -39,7 +39,7 @@ export class AuthenticateMiddleware implements Middleware {
         id: payload.id,
         email: payload.email,
       };
-      next();
+      return next();
     } catch (error) {
       throw new HttpError(
         StatusCodes.UNAUTHORIZED,

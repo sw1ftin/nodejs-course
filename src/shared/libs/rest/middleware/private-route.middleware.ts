@@ -34,7 +34,7 @@ export class PrivateRouteMiddleware implements Middleware {
         id: payload.id,
         email: payload.email,
       };
-      next();
+      return next();
     } catch {
       throw new HttpError(
         StatusCodes.UNAUTHORIZED,
