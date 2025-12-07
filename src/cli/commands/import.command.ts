@@ -21,8 +21,8 @@ export class ImportCommand implements Command {
     this.onImportedLine = this.onImportedLine.bind(this);
 
     this.logger = new ConsoleLogger();
-    this.offerService = new DefaultOfferService(this.logger, OfferModel);
     this.userService = new DefaultUserService(this.logger, UserModel);
+    this.offerService = new DefaultOfferService(this.logger, OfferModel, this.userService);
     this.databaseClient = new MongoDatabaseClient(this.logger);
   }
 
@@ -53,7 +53,6 @@ export class ImportCommand implements Command {
       previewImage: offer.previewImage,
       images: offer.images,
       isPremium: offer.isPremium,
-      isFavorite: offer.isFavorite,
       rating: offer.rating,
       type: offer.type,
       rooms: offer.rooms,
@@ -63,7 +62,7 @@ export class ImportCommand implements Command {
       userId: user._id.toString(),
       commentsCount: offer.commentsCount,
       location: offer.location
-    });
+    } as any);
   }
 
   public async execute(...parameters: string[]): Promise<void> {
