@@ -1,28 +1,37 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import {
   BaseController,
   HttpMethod,
   ValidateObjectIdMiddleware,
   ValidateDtoMiddleware,
   DocumentExistsMiddleware,
+  AuthenticateMiddleware,
+  HttpError,
 } from '../../libs/rest/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
 import { CommentService } from './comment-service.interface.js';
 import { CreateCommentDto } from './dto/create-comment.dto.js';
 import { OfferService } from '../offer/offer-service.interface.js';
+import { JwtService } from '../../libs/jwt/index.js';
 
 @injectable()
 export class CommentController extends BaseController {
+  private readonly authenticateMiddleware: AuthenticateMiddleware;
+
   constructor(
     @inject(Component.Logger) protected readonly logger: Logger,
     @inject(Component.CommentService)
     private readonly commentService: CommentService,
     @inject(Component.OfferService) private readonly offerService: OfferService,
+    @inject(Component.JwtService) private readonly jwtService: JwtService,
   ) {
     super(logger);
     this.logger.info('Register routes for CommentController…');
+
+    this.authenticateMiddleware = new AuthenticateMiddleware(this.jwtService);
 
     const validateOfferIdMiddleware = new ValidateObjectIdMiddleware('offerId');
     const validateCreateCommentDtoMiddleware = new ValidateDtoMiddleware(CreateCommentDto);
@@ -38,7 +47,7 @@ export class CommentController extends BaseController {
       path: '/:offerId',
       method: HttpMethod.Post,
       handler: this.create as any,
-      middlewares: [validateOfferIdMiddleware, validateCreateCommentDtoMiddleware, documentExistsMiddleware]
+      middlewares: [this.authenticateMiddleware, validateOfferIdMiddleware, validateCreateCommentDtoMiddleware, documentExistsMiddleware]
     });
   }
 
@@ -55,14 +64,24 @@ export class CommentController extends BaseController {
     {
       body,
       params,
-    }: Request<{ offerId: string }, Record<string, unknown>, CreateCommentDto>,
+      user,
+    }: Request<{ offerId: string }, Record<string, unknown>, CreateCommentDto> & { user?: { id: string } },
     res: Response,
   ): Promise<void> {
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'User not authenticated',
+        'CommentController'
+      );
+    }
+
     const { offerId } = params;
 
     const result = await this.commentService.create({
       ...body,
       offerId,
+      authorId: user.id,
     });
     this.created(res, result);
   }

@@ -10,9 +10,6 @@ export class CreateCommentDto {
   @Max(5, { message: 'rating must be at most 5' })
   public rating!: number;
 
-  @IsString({ message: 'authorId is required' })
-  public authorId!: string;
-
   // offerId приходит из параметров маршрута и валидируется через ValidateObjectIdMiddleware
   public offerId!: string;
 }

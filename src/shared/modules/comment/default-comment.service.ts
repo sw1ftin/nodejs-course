@@ -17,7 +17,7 @@ export class DefaultCommentService implements CommentService {
     @inject(Component.OfferService) private readonly offerService: OfferService,
   ) {}
 
-  public async create(dto: CreateCommentDto): Promise<CommentEntity> {
+  public async create(dto: CreateCommentDto & { authorId: string }): Promise<CommentEntity> {
     const comment = await this.commentModel.create({
       ...dto,
       author: dto.authorId,

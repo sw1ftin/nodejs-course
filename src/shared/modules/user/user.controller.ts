@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { BaseController, HttpError, HttpMethod, ValidateDtoMiddleware, UploadFileMiddleware, ValidateObjectIdMiddleware, DocumentExistsMiddleware } from '../../libs/rest/index.js';
+import { BaseController, HttpError, HttpMethod, ValidateDtoMiddleware, UploadFileMiddleware, AuthenticateMiddleware } from '../../libs/rest/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
 import { UserService } from './user-service.interface.js';
@@ -9,21 +9,25 @@ import { Config } from '../../libs/config/index.js';
 import { RestSchema } from '../../libs/config/rest.schema.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
+import { JwtService } from '../../libs/jwt/index.js';
 
 @injectable()
 export class UserController extends BaseController {
+  private readonly authenticateMiddleware: AuthenticateMiddleware;
+
   constructor(
     @inject(Component.Logger) protected readonly logger: Logger,
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.Config) private readonly configService: Config<RestSchema>,
+    @inject(Component.JwtService) private readonly jwtService: JwtService,
   ) {
     super(logger);
     this.logger.info('Register routes for UserController…');
 
+    this.authenticateMiddleware = new AuthenticateMiddleware(this.jwtService);
+
     const validateCreateUserDtoMiddleware = new ValidateDtoMiddleware(CreateUserDto);
     const validateLoginUserDtoMiddleware = new ValidateDtoMiddleware(LoginUserDto);
-    const validateUserIdMiddleware = new ValidateObjectIdMiddleware('userId');
-    const documentExistsMiddleware = new DocumentExistsMiddleware(this.userService, 'userId', 'User');
     const uploadAvatarMiddleware = new UploadFileMiddleware(
       this.configService.get('UPLOAD_DIRECTORY'),
       'avatar'
@@ -42,10 +46,34 @@ export class UserController extends BaseController {
       middlewares: [validateLoginUserDtoMiddleware]
     });
     this.addRoute({
-      path: '/:userId/avatar',
+      path: '/avatar',
       method: HttpMethod.Post,
       handler: this.uploadAvatar as any,
-      middlewares: [validateUserIdMiddleware, documentExistsMiddleware, uploadAvatarMiddleware]
+      middlewares: [this.authenticateMiddleware, uploadAvatarMiddleware]
+    });
+    this.addRoute({
+      path: '/check',
+      method: HttpMethod.Get,
+      handler: this.checkToken as any,
+      middlewares: [this.authenticateMiddleware]
+    });
+    this.addRoute({
+      path: '/favorites/:offerId',
+      method: HttpMethod.Post,
+      handler: this.addToFavorites as any,
+      middlewares: [this.authenticateMiddleware]
+    });
+    this.addRoute({
+      path: '/favorites/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.removeFromFavorites as any,
+      middlewares: [this.authenticateMiddleware]
+    });
+    this.addRoute({
+      path: '/favorites',
+      method: HttpMethod.Get,
+      handler: this.getFavorites as any,
+      middlewares: [this.authenticateMiddleware]
     });
   }
 
@@ -92,18 +120,22 @@ export class UserController extends BaseController {
       );
     }
 
+    const token = await this.jwtService.sign({
+      email: user.email,
+      id: user.id,
+    });
+
     this.ok(res, {
       email: user.email,
       name: user.name,
+      token,
     });
   }
 
   public async uploadAvatar(
-    { params, file }: Request<{ userId: string }>,
+    { file, user }: Request & { user?: { id: string } },
     res: Response,
   ): Promise<void> {
-    const { userId } = params;
-
     if (!file) {
       throw new HttpError(
         StatusCodes.BAD_REQUEST,
@@ -112,11 +144,99 @@ export class UserController extends BaseController {
       );
     }
 
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'User not authenticated',
+        'UserController'
+      );
+    }
+
     const avatarUrl = `/upload/${file.filename}`;
-    const updatedUser = await this.userService.updateById(userId, { avatarUrl });
+    const updatedUser = await this.userService.updateById(user.id, { avatarUrl });
 
     this.ok(res, {
       avatarUrl: updatedUser?.avatarUrl,
     });
+  }
+
+  public async checkToken(
+    { user }: Request & { user?: { id: string; email: string } },
+    res: Response,
+  ): Promise<void> {
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'User not authenticated',
+        'UserController'
+      );
+    }
+
+    const foundUser = await this.userService.findById(user.id);
+
+    if (!foundUser) {
+      throw new HttpError(
+        StatusCodes.NOT_FOUND,
+        'User not found',
+        'UserController'
+      );
+    }
+
+    this.ok(res, {
+      email: foundUser.email,
+      name: foundUser.name,
+      avatarUrl: foundUser.avatarUrl,
+      type: foundUser.type,
+    });
+  }
+
+  public async addToFavorites(
+    { params, user }: Request<{ offerId: string }> & { user?: { id: string } },
+    res: Response,
+  ): Promise<void> {
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'User not authenticated',
+        'UserController'
+      );
+    }
+
+    const { offerId } = params;
+    await this.userService.addToFavorites(user.id, offerId);
+    this.noContent(res, null);
+  }
+
+  public async removeFromFavorites(
+    { params, user }: Request<{ offerId: string }> & { user?: { id: string } },
+    res: Response,
+  ): Promise<void> {
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'User not authenticated',
+        'UserController'
+      );
+    }
+
+    const { offerId } = params;
+    await this.userService.removeFromFavorites(user.id, offerId);
+    this.noContent(res, null);
+  }
+
+  public async getFavorites(
+    { user }: Request & { user?: { id: string } },
+    res: Response,
+  ): Promise<void> {
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'User not authenticated',
+        'UserController'
+      );
+    }
+
+    const favorites = await this.userService.findFavorites(user.id);
+    this.ok(res, favorites);
   }
 }

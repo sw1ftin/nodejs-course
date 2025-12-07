@@ -10,3 +10,6 @@ export * from './middleware/validate-objectid.middleware.js';
 export * from './middleware/validate-dto.middleware.js';
 export * from './middleware/document-exists.middleware.js';
 export * from './middleware/upload-file.middleware.js';
+export * from './middleware/authenticate.middleware.js';
+export * from './middleware/private-route.middleware.js';
+export * from './middleware/optional-authenticate.middleware.js';

@@ -64,6 +64,12 @@ export class RestConfig implements Config<RestSchema> {
         format: String,
         env: 'UPLOAD_DIRECTORY',
         default: './upload'
+      },
+      JWT_SECRET: {
+        doc: 'Secret for JWT token',
+        format: String,
+        env: 'JWT_SECRET',
+        default: 'your-secret-key'
       }
     });
 

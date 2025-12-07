@@ -66,7 +66,7 @@ export class DefaultUserService implements UserService {
 
   public async findFavorites(userId: string): Promise<string[]> {
     const user = await this.userModel.findById(userId).select('favorites').exec();
-    return user?.favorites || [];
+    return (user?.favorites || []).map((id) => id.toString());
   }
 
   public async exists(documentId: string): Promise<boolean> {

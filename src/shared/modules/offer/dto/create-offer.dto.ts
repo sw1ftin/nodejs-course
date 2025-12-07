@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsDateString, IsEnum, IsNumber, IsObject, IsString, Length, Max, Min, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsNumber, IsObject, IsString, Length, Max, Min, ArrayMinSize, ArrayMaxSize, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { CityName, PropertyType, Amenity, Location } from '../../../types/index.js';
 
@@ -11,9 +11,10 @@ export class CreateOfferDto {
   @Length(20, 1024, { message: 'description length must be between 20 and 1024 characters' })
   public description!: string;
 
+  @IsOptional()
   @IsDateString({}, { message: 'publishDate must be a valid date string' })
-  @Transform(({ value }) => new Date(value))
-  public publishDate!: Date;
+  @Transform(({ value }) => value ? new Date(value) : new Date())
+  public publishDate?: Date;
 
   @IsEnum(CityName, { message: 'city must be one of the valid cities' })
   public city!: CityName;
@@ -29,9 +30,6 @@ export class CreateOfferDto {
 
   @IsBoolean({ message: 'isPremium must be a boolean' })
   public isPremium!: boolean;
-
-  @IsBoolean({ message: 'isFavorite must be a boolean' })
-  public isFavorite!: boolean;
 
   @IsNumber({}, { message: 'rating must be a number' })
   @Min(1, { message: 'rating must be at least 1' })
@@ -60,11 +58,9 @@ export class CreateOfferDto {
   @IsEnum(Amenity, { each: true, message: 'each amenity must be a valid amenity type' })
   public amenities!: Amenity[];
 
-  @IsString({ message: 'userId is required' })
-  public userId!: string;
-
+  @IsOptional()
   @IsNumber({}, { message: 'commentsCount must be a number' })
-  public commentsCount!: number;
+  public commentsCount?: number;
 
   @IsObject({ message: 'location must be an object' })
   public location!: Location;
