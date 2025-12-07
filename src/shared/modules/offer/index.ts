@@ -5,5 +5,4 @@ export * from './offer.container.js';
 export * from './dto/create-offer.dto.js';
 export * from './dto/update-offer.dto.js';
 export * from './offer.constant.js';
-export * from './dto/update-offer.dto.js';
-export * from './offer.constant.js';
+export * from './offer.controller.js';
