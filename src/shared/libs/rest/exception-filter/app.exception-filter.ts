@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import { ExceptionFilter } from './exception-filter.interface.js';
 import { Logger } from '../../logger/index.js';
 import { Component } from '../../../types/index.js';
+import { HttpError } from '../errors/index.js';
 
 @injectable()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -15,6 +16,14 @@ export class AppExceptionFilter implements ExceptionFilter {
 
   public catch(error: Error, _req: Request, res: Response, _next: NextFunction): void {
     this.logger.error(error.message, error);
+
+    if (error instanceof HttpError) {
+      res
+        .status(error.httpStatusCode)
+        .json({ error: error.message });
+      return;
+    }
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: error.message });
