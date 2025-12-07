@@ -1,7 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import { BaseController, HttpError, HttpMethod, ValidateObjectIdMiddleware, ValidateDtoMiddleware } from '../../libs/rest/index.js';
+import { BaseController, HttpMethod, ValidateObjectIdMiddleware, ValidateDtoMiddleware, DocumentExistsMiddleware } from '../../libs/rest/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
 import { OfferService } from './offer-service.interface.js';
@@ -20,6 +19,7 @@ export class OfferController extends BaseController {
     const validateOfferIdMiddleware = new ValidateObjectIdMiddleware('offerId');
     const validateCreateOfferDtoMiddleware = new ValidateDtoMiddleware(CreateOfferDto);
     const validateUpdateOfferDtoMiddleware = new ValidateDtoMiddleware(UpdateOfferDto);
+    const documentExistsMiddleware = new DocumentExistsMiddleware(this.offerService, 'offerId', 'Offer');
 
     this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index as any });
     this.addRoute({
@@ -32,19 +32,19 @@ export class OfferController extends BaseController {
       path: '/:offerId',
       method: HttpMethod.Get,
       handler: this.show as any,
-      middlewares: [validateOfferIdMiddleware]
+      middlewares: [validateOfferIdMiddleware, documentExistsMiddleware]
     });
     this.addRoute({
       path: '/:offerId',
       method: HttpMethod.Patch,
       handler: this.update as any,
-      middlewares: [validateOfferIdMiddleware, validateUpdateOfferDtoMiddleware]
+      middlewares: [validateOfferIdMiddleware, validateUpdateOfferDtoMiddleware, documentExistsMiddleware]
     });
     this.addRoute({
       path: '/:offerId',
       method: HttpMethod.Delete,
       handler: this.delete as any,
-      middlewares: [validateOfferIdMiddleware]
+      middlewares: [validateOfferIdMiddleware, documentExistsMiddleware]
     });
     this.addRoute({ path: '/premium/:city', method: HttpMethod.Get, handler: this.getPremiumByCity as any });
   }
@@ -60,15 +60,6 @@ export class OfferController extends BaseController {
   ): Promise<void> {
     const { offerId } = params;
     const offer = await this.offerService.findById(offerId);
-
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'OfferController'
-      );
-    }
-
     this.ok(res, offer);
   }
 
@@ -86,15 +77,6 @@ export class OfferController extends BaseController {
   ): Promise<void> {
     const { offerId } = params;
     const updatedOffer = await this.offerService.updateById(offerId, body);
-
-    if (!updatedOffer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'OfferController'
-      );
-    }
-
     this.ok(res, updatedOffer);
   }
 
@@ -103,17 +85,8 @@ export class OfferController extends BaseController {
     res: Response
   ): Promise<void> {
     const { offerId } = params;
-    const deletedOffer = await this.offerService.deleteById(offerId);
-
-    if (!deletedOffer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'OfferController'
-      );
-    }
-
-    this.noContent(res, deletedOffer);
+    await this.offerService.deleteById(offerId);
+    this.noContent(res, null);
   }
 
   public async getPremiumByCity(

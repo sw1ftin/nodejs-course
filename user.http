@@ -1,0 +1,84 @@
+### Variables
+@baseUrl = http://localhost:4000
+@userId = 68f0a088f912b6ade97e748f
+@offerId = 68f0a088f912b6ade97e7491
+
+### Register new user
+POST {{baseUrl}}/users/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test{{$timestamp}}@example.com",
+  "password": "password123",
+  "type": "regular"
+}
+
+### Login user
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Upload avatar (multipart/form-data)
+POST {{baseUrl}}/users/{{userId}}/avatar
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="avatar.jpg"
+Content-Type: image/jpeg
+
+< ./markup/img/avatar.svg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Get all offers
+GET {{baseUrl}}/offers
+
+### Get offer by ID
+GET {{baseUrl}}/offers/{{offerId}}
+
+### Get offer by ID (non-existent - should return 404)
+GET {{baseUrl}}/offers/000000000000000000000000
+
+### Get premium offers by city
+GET {{baseUrl}}/offers/premium/Paris
+
+### Get comments for offer
+GET {{baseUrl}}/comments/{{offerId}}
+
+### Create comment
+POST {{baseUrl}}/comments/{{offerId}}
+Content-Type: application/json
+
+{
+  "text": "Отличное предложение! Очень понравилось.",
+  "rating": 5,
+  "authorId": "{{userId}}"
+}
+
+### Create comment with invalid data (should return 400)
+POST {{baseUrl}}/comments/{{offerId}}
+Content-Type: application/json
+
+{
+  "text": "Hi",
+  "rating": 10,
+  "authorId": "{{userId}}"
+}
+
+### Create comment for non-existent offer (should return 404)
+POST {{baseUrl}}/comments/000000000000000000000000
+Content-Type: application/json
+
+{
+  "text": "This should fail",
+  "rating": 5,
+  "authorId": "{{userId}}"
+}
+
+### Get uploaded avatar (static file)
+GET {{baseUrl}}/upload/avatar.jpg
+

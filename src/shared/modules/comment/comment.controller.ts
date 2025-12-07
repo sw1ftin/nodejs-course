@@ -1,12 +1,11 @@
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
 import {
   BaseController,
-  HttpError,
   HttpMethod,
   ValidateObjectIdMiddleware,
   ValidateDtoMiddleware,
+  DocumentExistsMiddleware,
 } from '../../libs/rest/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
@@ -27,6 +26,7 @@ export class CommentController extends BaseController {
 
     const validateOfferIdMiddleware = new ValidateObjectIdMiddleware('offerId');
     const validateCreateCommentDtoMiddleware = new ValidateDtoMiddleware(CreateCommentDto);
+    const documentExistsMiddleware = new DocumentExistsMiddleware(this.offerService, 'offerId', 'Offer');
 
     this.addRoute({
       path: '/:offerId',
@@ -38,7 +38,7 @@ export class CommentController extends BaseController {
       path: '/:offerId',
       method: HttpMethod.Post,
       handler: this.create as any,
-      middlewares: [validateOfferIdMiddleware, validateCreateCommentDtoMiddleware]
+      middlewares: [validateOfferIdMiddleware, validateCreateCommentDtoMiddleware, documentExistsMiddleware]
     });
   }
 
@@ -59,15 +59,6 @@ export class CommentController extends BaseController {
     res: Response,
   ): Promise<void> {
     const { offerId } = params;
-
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${offerId} not found.`,
-        'CommentController',
-      );
-    }
 
     const result = await this.commentService.create({
       ...body,
